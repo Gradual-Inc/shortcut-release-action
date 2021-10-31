@@ -216,6 +216,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateReleaseTicket = exports.updateStory = exports.getStateId = void 0;
 const R = __importStar(__nccwpck_require__(4119));
+const core = __importStar(__nccwpck_require__(2186));
 const client_1 = __nccwpck_require__(5914);
 function getStateId({ workflowName, workflowStateName, token }) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -239,11 +240,13 @@ function updateStory({ stateId, storyId, releaseTicketId, token }) {
         yield shortcut.updateStory(Number(storyId), {
             workflow_state_id: stateId
         });
+        core.info(`updated ticket ${storyId}`);
         yield shortcut.createStoryLink({
             object_id: Number(releaseTicketId),
             subject_id: Number(storyId),
             verb: 'relates to'
         });
+        core.info(`linked story ${storyId} to release story ${releaseTicketId}`);
     });
 }
 exports.updateStory = updateStory;
@@ -257,6 +260,7 @@ function updateReleaseTicket({ projectName, releaseContent, releaseName, release
                 description: `${releaseTicketContent.description} \n # ${projectName} [${releaseName}](${releaseUrl}) \n\n ${releaseContent}\n\n`
             });
         }
+        core.info(`updated description of release ticket ${releaseTicketId}`);
     });
 }
 exports.updateReleaseTicket = updateReleaseTicket;

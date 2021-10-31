@@ -1,4 +1,5 @@
 import * as R from 'ramda'
+import * as core from '@actions/core'
 import {ShortcutClient} from '@useshortcut/client'
 
 export async function getStateId({
@@ -38,11 +39,15 @@ export async function updateStory({
   await shortcut.updateStory(Number(storyId), {
     workflow_state_id: stateId
   })
+
+  core.info(`updated ticket ${storyId}`)
+
   await shortcut.createStoryLink({
     object_id: Number(releaseTicketId),
     subject_id: Number(storyId),
     verb: 'relates to'
   })
+  core.info(`linked story ${storyId} to release story ${releaseTicketId}`)
 }
 
 export async function updateReleaseTicket({
@@ -72,4 +77,5 @@ export async function updateReleaseTicket({
       description: `${releaseTicketContent.description} \n # ${projectName} [${releaseName}](${releaseUrl}) \n\n ${releaseContent}\n\n`
     })
   }
+  core.info(`updated description of release ticket ${releaseTicketId}`)
 }
