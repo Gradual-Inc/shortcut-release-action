@@ -36,6 +36,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getStoryIdsFromRelease = exports.getRelease = void 0;
+const R = __importStar(__nccwpck_require__(4119));
 const github = __importStar(__nccwpck_require__(5438));
 function getRelease({ releaseName, token, repo, owner }) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -58,15 +59,15 @@ function getRelease({ releaseName, token, repo, owner }) {
 }
 exports.getRelease = getRelease;
 function getStoryIdsFromRelease({ content, rex }) {
-    const tickets = new Set([]);
+    const tickets = [];
     let m;
     do {
         m = rex.exec(content);
         if (m && m[1]) {
-            tickets.add(m[1]);
+            tickets.push(m[1]);
         }
     } while (m);
-    return tickets.values();
+    return R.uniq(tickets);
 }
 exports.getStoryIdsFromRelease = getStoryIdsFromRelease;
 
@@ -123,12 +124,13 @@ function run() {
             const releaseTicketId = core.getInput('release_ticket_id', {
                 required: true
             });
-            if (process.env.GITHUB_TOKEN === undefined) {
+            if (!process.env.GITHUB_TOKEN) {
                 throw new Error('GITHUB_TOKEN env variable is not set');
             }
-            if (process.env.SHORTCUT_TOKEN === undefined) {
+            if (!process.env.SHORTCUT_TOKEN) {
                 throw new Error('SHORTCUT_TOKEN env variable is not set');
             }
+            const shortcutToken = process.env.SHORTCUT_TOKEN;
             const { owner, repo } = github.context.repo;
             // const owner = 'gradual-inc'
             // const repo = 'gradual'
@@ -143,27 +145,26 @@ function run() {
                 content: release.body,
                 rex: /\[SC-(\d+)\]/g
             });
-            core.info(`tickets to process: ${Array.from(tickets).join(',')}`);
+            core.info(`tickets to process: ${tickets.join(',')}`);
             const stateId = yield (0, shortcut_1.getStateId)({
                 workflowName,
                 workflowStateName,
-                token: process.env.SHORTCUT_TOKEN
+                token: shortcutToken
             });
-            for (const ticket of tickets) {
+            yield Promise.all(tickets.map((ticket) => __awaiter(this, void 0, void 0, function* () {
                 yield (0, shortcut_1.updateStory)({
                     stateId,
                     releaseTicketId,
                     storyId: ticket,
-                    token: process.env.SHORTCUT_TOKEN
+                    token: shortcutToken
                 });
-                core.info(`update story: ${ticket}`);
-            }
+            })));
             yield (0, shortcut_1.updateReleaseTicket)({
                 projectName: repo,
                 releaseName: release.name,
                 releaseContent: release.body || '',
                 releaseUrl: release.html_url,
-                token: process.env.SHORTCUT_TOKEN,
+                token: shortcutToken,
                 releaseTicketId
             });
             core.info(`update release ticket: ${releaseTicketId}`);

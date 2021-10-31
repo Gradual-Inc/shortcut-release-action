@@ -1,3 +1,4 @@
+import * as R from 'ramda'
 import * as github from '@actions/github'
 
 export async function getRelease({
@@ -42,14 +43,14 @@ export function getStoryIdsFromRelease({
 }: {
   content: string
   rex: RegExp
-}): IterableIterator<string> {
-  const tickets = new Set<string>([])
+}): string[] {
+  const tickets: string[] = []
   let m
   do {
     m = rex.exec(content)
     if (m && m[1]) {
-      tickets.add(m[1])
+      tickets.push(m[1])
     }
   } while (m)
-  return tickets.values()
+  return R.uniq(tickets)
 }

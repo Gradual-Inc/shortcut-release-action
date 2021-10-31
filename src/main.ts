@@ -14,12 +14,15 @@ export async function run(): Promise<void> {
     const releaseTicketId: string = core.getInput('release_ticket_id', {
       required: true
     })
-    if (process.env.GITHUB_TOKEN === undefined) {
+    if (!process.env.GITHUB_TOKEN) {
       throw new Error('GITHUB_TOKEN env variable is not set')
     }
-    if (process.env.SHORTCUT_TOKEN === undefined) {
+
+    if (!process.env.SHORTCUT_TOKEN) {
       throw new Error('SHORTCUT_TOKEN env variable is not set')
     }
+
+    const shortcutToken = process.env.SHORTCUT_TOKEN
 
     const {owner, repo} = github.context.repo
     // const owner = 'gradual-inc'
@@ -38,30 +41,31 @@ export async function run(): Promise<void> {
       rex: /\[SC-(\d+)\]/g
     })
 
-    core.info(`tickets to process: ${Array.from(tickets).join(',')}`)
+    core.info(`tickets to process: ${tickets.join(',')}`)
 
     const stateId = await getStateId({
       workflowName,
       workflowStateName,
-      token: process.env.SHORTCUT_TOKEN
+      token: shortcutToken
     })
 
-    for (const ticket of tickets) {
-      await updateStory({
-        stateId,
-        releaseTicketId,
-        storyId: ticket,
-        token: process.env.SHORTCUT_TOKEN
+    await Promise.all(
+      tickets.map(async ticket => {
+        await updateStory({
+          stateId,
+          releaseTicketId,
+          storyId: ticket,
+          token: shortcutToken
+        })
       })
-      core.info(`update story: ${ticket}`)
-    }
+    )
 
     await updateReleaseTicket({
       projectName: repo,
       releaseName: release.name,
       releaseContent: release.body || '',
       releaseUrl: release.html_url,
-      token: process.env.SHORTCUT_TOKEN,
+      token: shortcutToken,
       releaseTicketId
     })
     core.info(`update release ticket: ${releaseTicketId}`)
