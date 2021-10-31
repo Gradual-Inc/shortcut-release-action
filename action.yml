@@ -2,10 +2,18 @@ name: 'Your name here'
 description: 'Provide a description here'
 author: 'Your name or organization here'
 inputs:
-  milliseconds: # change this
+  release_name:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'Github release name'
+  workflow:
+    required: true
+    description: 'Shorcut workflow name'
+  workflow_state:
+    required: true
+    description: 'Shorcut workflow state name'
+  release_ticket_id:
+    required: true
+    description: 'Shortcut release ticket id'
 runs:
   using: 'node12'
   main: 'dist/index.js'
