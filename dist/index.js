@@ -116,19 +116,21 @@ const shortcut_1 = __nccwpck_require__(3312);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const releaseName = core.getInput('release_name', { required: true });
-            const workflowName = core.getInput('workflow', { required: true });
-            const workflowStateName = core.getInput('workflow_state', {
-                required: true
+            const releaseName = core.getInput("release_name", {
+                required: true,
             });
-            const releaseTicketId = core.getInput('release_ticket_id', {
-                required: true
+            const workflowName = core.getInput("workflow", { required: true });
+            const workflowStateName = core.getInput("workflow_state", {
+                required: true,
+            });
+            const releaseTicketId = core.getInput("release_ticket_id", {
+                required: true,
             });
             if (!process.env.GITHUB_TOKEN) {
-                throw new Error('GITHUB_TOKEN env variable is not set');
+                throw new Error("GITHUB_TOKEN env variable is not set");
             }
             if (!process.env.SHORTCUT_TOKEN) {
-                throw new Error('SHORTCUT_TOKEN env variable is not set');
+                throw new Error("SHORTCUT_TOKEN env variable is not set");
             }
             const shortcutToken = process.env.SHORTCUT_TOKEN;
             const { owner, repo } = github.context.repo;
@@ -138,34 +140,35 @@ function run() {
                 owner,
                 repo,
                 releaseName,
-                token: process.env.GITHUB_TOKEN
+                token: process.env.GITHUB_TOKEN,
             });
             core.info(`get release ${release.name}`);
             const tickets = (0, github_1.getStoryIdsFromRelease)({
                 content: release.body,
-                rex: /\[SC-(\d+)\]/g
+                rex: /SC-(\d+)/g,
             });
-            core.info(`tickets to process: ${tickets.join(',')}`);
             const stateId = yield (0, shortcut_1.getStateId)({
                 workflowName,
                 workflowStateName,
-                token: shortcutToken
+                token: shortcutToken,
             });
+            core.startGroup(`start update tickets ${tickets.join(",")}`);
             yield Promise.all(tickets.map((ticket) => __awaiter(this, void 0, void 0, function* () {
                 yield (0, shortcut_1.updateStory)({
                     stateId,
                     releaseTicketId,
                     storyId: ticket,
-                    token: shortcutToken
+                    token: shortcutToken,
                 });
             })));
+            core.endGroup();
             yield (0, shortcut_1.updateReleaseTicket)({
                 projectName: repo,
                 releaseName: release.name,
-                releaseContent: release.body || '',
+                releaseContent: release.body || "",
                 releaseUrl: release.html_url,
                 token: shortcutToken,
-                releaseTicketId
+                releaseTicketId,
             });
             core.info(`update release ticket: ${releaseTicketId}`);
         }
@@ -238,16 +241,26 @@ exports.getStateId = getStateId;
 function updateStory({ stateId, storyId, releaseTicketId, token }) {
     return __awaiter(this, void 0, void 0, function* () {
         const shortcut = new client_1.ShortcutClient(token);
-        yield shortcut.updateStory(Number(storyId), {
-            workflow_state_id: stateId
-        });
-        core.info(`updated ticket ${storyId}`);
-        yield shortcut.createStoryLink({
-            object_id: Number(releaseTicketId),
-            subject_id: Number(storyId),
-            verb: 'relates to'
-        });
-        core.info(`linked story ${storyId} to release story ${releaseTicketId}`);
+        try {
+            yield shortcut.updateStory(Number(storyId), {
+                workflow_state_id: stateId
+            });
+            core.info(`updated ticket ${storyId}`);
+        }
+        catch (e) {
+            core.warning(`fail to update ticket ${storyId} with error: ${e}`);
+        }
+        try {
+            yield shortcut.createStoryLink({
+                object_id: Number(releaseTicketId),
+                subject_id: Number(storyId),
+                verb: 'relates to'
+            });
+            core.info(`linked story ${storyId} to release story ${releaseTicketId}`);
+        }
+        catch (e) {
+            core.warning(`fail to link ticket ${storyId} with error: ${e}`);
+        }
     });
 }
 exports.updateStory = updateStory;
