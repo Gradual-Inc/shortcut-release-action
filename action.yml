@@ -16,4 +16,4 @@ inputs:
     description: 'Shortcut release ticket id'
 runs:
   using: 'node12'
-  main: 'lib/index.js'
+  main: 'lib/main.js'
