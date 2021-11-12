@@ -81,7 +81,7 @@ export async function updateReleaseTicket({
   const re = new RegExp(releaseName)
   if (!releaseTicketContent.description.match(re)) {
     await shortcut.updateStory(Number(releaseTicketId), {
-      description: `${releaseTicketContent.description} \n # ${projectName} [${releaseName}](${releaseUrl}) \n\n ${releaseContent}\n\n`
+      description: `\n${releaseTicketContent.description} \n # ${projectName} [${releaseName}](${releaseUrl}) \n\n ${releaseContent}\n\n`
     })
   }
   core.info(`updated description of release ticket ${releaseTicketId}`)
