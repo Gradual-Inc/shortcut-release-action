@@ -116,21 +116,21 @@ const shortcut_1 = __nccwpck_require__(3312);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const releaseName = core.getInput("release_name", {
-                required: true,
+            const releaseName = core.getInput('release_name', {
+                required: true
             });
-            const workflowName = core.getInput("workflow", { required: true });
-            const workflowStateName = core.getInput("workflow_state", {
-                required: true,
+            const workflowName = core.getInput('workflow', { required: true });
+            const workflowStateName = core.getInput('workflow_state', {
+                required: true
             });
-            const releaseTicketId = core.getInput("release_ticket_id", {
-                required: true,
+            const releaseTicketId = core.getInput('release_ticket_id', {
+                required: true
             });
             if (!process.env.GITHUB_TOKEN) {
-                throw new Error("GITHUB_TOKEN env variable is not set");
+                throw new Error('GITHUB_TOKEN env variable is not set');
             }
             if (!process.env.SHORTCUT_TOKEN) {
-                throw new Error("SHORTCUT_TOKEN env variable is not set");
+                throw new Error('SHORTCUT_TOKEN env variable is not set');
             }
             const shortcutToken = process.env.SHORTCUT_TOKEN;
             const { owner, repo } = github.context.repo;
@@ -140,37 +140,37 @@ function run() {
                 owner,
                 repo,
                 releaseName,
-                token: process.env.GITHUB_TOKEN,
+                token: process.env.GITHUB_TOKEN
             });
-            core.info(`get release ${release.name}`);
+            core.info(`Get Github release: ${release.name}`);
             const tickets = (0, github_1.getStoryIdsFromRelease)({
                 content: release.body,
-                rex: /SC-(\d+)/g,
+                rex: /SC-(\d+)/g
             });
+            core.info(`Parsed tickets number: ${tickets.join(',')}`);
             const stateId = yield (0, shortcut_1.getStateId)({
                 workflowName,
                 workflowStateName,
-                token: shortcutToken,
+                token: shortcutToken
             });
-            core.startGroup(`start update tickets ${tickets.join(",")}`);
+            core.startGroup(`Updating tickets`);
             yield Promise.all(tickets.map((ticket) => __awaiter(this, void 0, void 0, function* () {
                 yield (0, shortcut_1.updateStory)({
                     stateId,
                     releaseTicketId,
                     storyId: ticket,
-                    token: shortcutToken,
+                    token: shortcutToken
                 });
             })));
             core.endGroup();
             yield (0, shortcut_1.updateReleaseTicket)({
                 projectName: repo,
                 releaseName: release.name,
-                releaseContent: release.body || "",
+                releaseContent: release.body || '',
                 releaseUrl: release.html_url,
                 token: shortcutToken,
-                releaseTicketId,
+                releaseTicketId
             });
-            core.info(`update release ticket: ${releaseTicketId}`);
         }
         catch (error) {
             if (error instanceof Error)
