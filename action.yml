@@ -1,6 +1,6 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Shortcut Release Action'
+description: 'Add release note to release ticket and update related ticekts'
+author: 'Allen Wei'
 inputs:
   release_name:
     required: true
@@ -16,4 +16,4 @@ inputs:
     description: 'Shortcut release ticket id'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'lib/index.js'
