@@ -40,7 +40,7 @@ export async function run(): Promise<void> {
 
     const tickets = getStoryIdsFromRelease({
       content: release.body,
-      rex: /\[SC-(\d+)\]/g,
+      rex: /SC-(\d+)/g,
     });
 
     const stateId = await getStateId({
